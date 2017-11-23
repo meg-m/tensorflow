@@ -255,7 +255,7 @@ differentiation. Specifically, the functions:
     arguments.
 
 These functions naturally apply to higher order differentiation as well. For
-example:
+example: (code throws a 'Nonetype' error)
 
 ```python
 def f(x):
