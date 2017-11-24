@@ -334,6 +334,61 @@ To utilize the GPU, place the code above within a `with tf.device("/gpu:0"):`
 block. (However, this particular model, with only two floating point parameters,
 is unlikely to benefit from GPU acceleration.)
 
+A quick test reveals our confirmation:
+
+```python
+# Does it help speed up with a GPU flag
+with tf.device("/gpu:0"):
+    def prediction(input, weight, bias):
+        return input * weight + bias
+    # A toy dataset of points around 3 * x + 2
+    NUM_EXAMPLES = 1000
+    training_inputs = tf.random_normal([NUM_EXAMPLES])
+    noise = tf.random_normal([NUM_EXAMPLES])
+    training_outputs = training_inputs * 3 + 2 + noise
+    
+    # A loss function: Mean-squared error
+    def loss(weight, bias):
+        error = prediction(training_inputs, weight, bias) - training_outputs
+        return tf.reduce_mean(tf.square(error))
+    
+    # Function that returns the the derivative of loss with respect to
+    # weight and bia
+    grad = tfe.gradients_function(loss)
+
+    # Train for 200 steps (starting from some random choice for W and B, on the same
+    # batch of data).
+    W = 5.
+    B = 10.
+    learning_rate = 0.01
+    print("Initial loss: %f" % loss(W, B).numpy())
+    for i in range(200):
+        dW, dB = grad(W, B)
+        W -= dW * learning_rate
+        B -= dB * learning_rate
+        if i % 20 == 0:
+            print("Loss at step %d: %f" % (i, loss(W, B).numpy()))
+    print("Final loss: %f" % loss(W, B).numpy())
+    print("W, B = %f, %f" % (W.numpy(), B.numpy()))
+```
+Output with GPU (Single GPU / 8GB device):
+
+```
+Initial loss: 69.910088
+Loss at step 0: 67.112480
+Loss at step 20: 29.865620
+Loss at step 40: 13.599451
+Loss at step 60: 6.487347
+Loss at step 80: 3.373875
+Loss at step 100: 2.009162
+Loss at step 120: 1.410196
+Loss at step 140: 1.146961
+Loss at step 160: 1.031118
+Loss at step 180: 0.980067
+Final loss: 0.958281
+W, B = 2.985198, 2.177111
+```
+
 ### Customizing gradients
 
 One may want to define custom gradients for an operation, or for a function.
