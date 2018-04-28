@@ -3,6 +3,7 @@
 </div>
 
 -----------------
+Updated and Synced with main source @Tensorflow
 
 
 | **`Documentation`** | **`Linux CPU`** | **`Linux GPU`** | **`Mac OS CPU`** | **`Windows CPU`** | **`Android`** |
